@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-br"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutores</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div id="topo"></div>
+<main>
+<div class="card">
+  <h2 id="tituloForm">Novo Tutor</h2>
+  <input type="hidden" id="id">
+  <div class="grid">
+    <div><label>Nome</label><input id="nome"></div>
+    <div><label>CPF (somente números)</label><input id="cpf" maxlength="14"></div>
+    <div><label>Telefone</label><input id="telefone" placeholder="(46) 99999-9999"></div>
+    <div><label>E-mail</label><input id="email" type="email"></div>
+  </div>
+  <button onclick="salvar()">Salvar</button>
+  <button class="sec" onclick="limpar()">Limpar</button>
+</div>
+<div class="card">
+  <h2>Tutores cadastrados</h2>
+  <div class="busca"><input id="busca" placeholder="Buscar por nome..." onkeydown="if(event.key==='Enter')listar()">
+  <button onclick="listar()">Buscar</button></div>
+  <table><thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>E-mail</th><th>Ações</th></tr></thead><tbody id="lista"></tbody></table>
+</div>
+</main>
+<script src="common.js"></script>
+<script>
+document.getElementById('topo').innerHTML = cabecalho('Tutores'); protegerPagina();
+let tutores = [];
+async function listar() {
+    tutores = await api('/api/tutores?busca=' + encodeURIComponent(document.getElementById('busca').value));
+    document.getElementById('lista').innerHTML = tutores.map(t => `<tr><td>${t.nome}</td><td>${fmtCPF(t.cpf)}</td>
+      <td>${t.telefone}</td><td>${t.email}</td>
+      <td><button class="edit" onclick="editar(${t.id})">Editar</button> <button class="del" onclick="excluir(${t.id})">Excluir</button></td></tr>`).join('')
+      || '<tr><td colspan="5">Nenhum tutor encontrado.</td></tr>';
+}
+function limpar() { ['id','nome','cpf','telefone','email'].forEach(i => document.getElementById(i).value = ''); document.getElementById('tituloForm').textContent = 'Novo Tutor'; }
+function editar(id) {
+    const t = tutores.find(x => x.id === id);
+    document.getElementById('id').value = t.id; document.getElementById('nome').value = t.nome;
+    document.getElementById('cpf').value = t.cpf; document.getElementById('telefone').value = t.telefone;
+    document.getElementById('email').value = t.email; document.getElementById('tituloForm').textContent = 'Editar Tutor';
+    window.scrollTo(0, 0);
+}
+async function salvar() {
+    const corpo = { nome: nome.value, cpf: cpf.value, telefone: telefone.value, email: email.value };
+    if (!corpo.nome.trim() || !corpo.cpf.trim() || !corpo.telefone.trim() || !corpo.email.trim()) { alert('Preencha todos os campos!'); return; }
+    const id = document.getElementById('id').value;
+    await api(id ? '/api/tutores/' + id : '/api/tutores', id ? 'PUT' : 'POST', corpo);
+    alert('Tutor salvo com sucesso!'); limpar(); listar();
+}
+async function excluir(id) {
+    if (!confirm('Deseja realmente excluir este tutor?')) return;
+    await api('/api/tutores/' + id, 'DELETE'); listar();
+}
+listar();
+</script></body></html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="pt-br"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pets</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div id="topo"></div>
+<main>
+<div class="card">
+  <h2 id="tituloForm">Novo Pet</h2>
+  <input type="hidden" id="id">
+  <div class="grid">
+    <div><label>Nome</label><input id="nome"></div>
+    <div><label>Tutor</label><select id="id_tutor"></select></div>
+    <div><label>Espécie</label><select id="especie"><option value="">Selecione</option><option>Cachorro</option><option>Gato</option><option>Ave</option><option>Outro</option></select></div>
+    <div><label>Raça</label><input id="raca"></div>
+    <div><label>Data de nascimento</label><input id="data_nascimento" type="date"></div>
+  </div>
+  <button onclick="salvar()">Salvar</button>
+  <button class="sec" onclick="limpar()">Limpar</button>
+</div>
+<div class="card">
+  <h2>Pets cadastrados</h2>
+  <div class="busca"><input id="busca" placeholder="Buscar por nome do pet..." onkeydown="if(event.key==='Enter')listar()">
+  <button onclick="listar()">Buscar</button></div>
+  <table><thead><tr><th>Nome</th><th>Espécie</th><th>Raça</th><th>Nascimento</th><th>Tutor</th><th>Ações</th></tr></thead><tbody id="lista"></tbody></table>
+</div>
+</main>
+<script src="common.js"></script>
+<script>
+document.getElementById('topo').innerHTML = cabecalho('Pets'); protegerPagina();
+let pets = [];
+async function carregarTutores() {
+    const t = await api('/api/tutores');
+    id_tutor.innerHTML = '<option value="">Selecione</option>' + t.map(x => `<option value="${x.id}">${x.nome}</option>`).join('');
+}
+async function listar() {
+    pets = await api('/api/pets?busca=' + encodeURIComponent(busca.value));
+    lista.innerHTML = pets.map(p => `<tr><td>${p.nome}</td><td>${p.especie}</td><td>${p.raca}</td>
+      <td>${p.data_nascimento.split('-').reverse().join('/')}</td><td>${p.tutor}</td>
+      <td><button class="edit" onclick="editar(${p.id})">Editar</button> <button class="del" onclick="excluir(${p.id})">Excluir</button></td></tr>`).join('')
+      || '<tr><td colspan="6">Nenhum pet encontrado.</td></tr>';
+}
+function limpar() { ['id','nome','raca','data_nascimento','especie','id_tutor'].forEach(i => document.getElementById(i).value = ''); tituloForm.textContent = 'Novo Pet'; }
+function editar(i) {
+    const p = pets.find(x => x.id === i);
+    id.value = p.id; nome.value = p.nome; especie.value = p.especie; raca.value = p.raca;
+    data_nascimento.value = p.data_nascimento; id_tutor.value = p.id_tutor; tituloForm.textContent = 'Editar Pet';
+    window.scrollTo(0, 0);
+}
+async function salvar() {
+    const corpo = { nome: nome.value, especie: especie.value, raca: raca.value, data_nascimento: data_nascimento.value, id_tutor: id_tutor.value };
+    if (!corpo.nome.trim() || !corpo.especie || !corpo.raca.trim() || !corpo.data_nascimento || !corpo.id_tutor) { alert('Preencha todos os campos!'); return; }
+    await api(id.value ? '/api/pets/' + id.value : '/api/pets', id.value ? 'PUT' : 'POST', corpo);
+    alert('Pet salvo com sucesso!'); limpar(); listar();
+}
+async function excluir(i) {
+    if (!confirm('Deseja realmente excluir este pet?')) return;
+    await api('/api/pets/' + i, 'DELETE'); listar();
+}
+carregarTutores(); listar();
+</script></body></html>

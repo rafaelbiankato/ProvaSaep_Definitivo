@@ -1,0 +1,18 @@
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;margin:0;background:#f2f6f5;color:#222}
+header{background:#1b7f6b;color:#fff;padding:14px 24px;display:flex;justify-content:space-between;align-items:center}
+header a{color:#fff}
+main{max-width:980px;margin:24px auto;padding:0 16px}
+.card{background:#fff;border-radius:8px;padding:20px;margin-bottom:20px;box-shadow:0 1px 4px #0002}
+h1,h2{margin-top:0}
+label{display:block;margin:10px 0 4px;font-weight:bold;font-size:14px}
+input,select{width:100%;padding:9px;border:1px solid #bbb;border-radius:5px}
+button{background:#1b7f6b;color:#fff;border:0;padding:9px 16px;border-radius:5px;cursor:pointer;margin-top:12px}
+button.sec{background:#777}button.del{background:#c0392b;margin:0}button.edit{background:#2980b9;margin:0}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid #ddd;padding:8px;text-align:left;font-size:14px}
+th{background:#e4efec}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.busca{display:flex;gap:8px;margin-bottom:12px}.busca button{margin:0}
+.menu a{display:block;background:#1b7f6b;color:#fff;padding:16px;margin:10px 0;border-radius:6px;text-decoration:none;text-align:center}
+.login{max-width:360px;margin:80px auto}

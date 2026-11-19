@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-br"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agendamentos</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div id="topo"></div>
+<main>
+<div class="card">
+  <h2 id="tituloForm">Novo Agendamento</h2>
+  <input type="hidden" id="id">
+  <div class="grid">
+    <div><label>Pet</label><select id="id_pet"></select></div>
+    <div><label>Data e hora</label><input id="data_hora" type="datetime-local"></div>
+    <div><label>Motivo</label><input id="motivo"></div>
+    <div><label>Status</label><select id="status"><option>AGENDADO</option><option>REALIZADO</option><option>CANCELADO</option></select></div>
+  </div>
+  <button onclick="salvar()">Salvar</button>
+  <button class="sec" onclick="limpar()">Limpar</button>
+</div>
+<div class="card">
+  <h2>Agendamentos</h2>
+  <div class="busca"><input id="busca" placeholder="Buscar por pet ou tutor..." onkeydown="if(event.key==='Enter')listar()">
+  <button onclick="listar()">Buscar</button></div>
+  <table><thead><tr><th>Data/Hora</th><th>Pet</th><th>Tutor</th><th>Motivo</th><th>Status</th><th>Atendente</th><th>Ações</th></tr></thead><tbody id="lista"></tbody></table>
+</div>
+</main>
+<script src="common.js"></script>
+<script>
+document.getElementById('topo').innerHTML = cabecalho('Agendamentos'); protegerPagina();
+let ags = [];
+async function carregarPets() {
+    const p = await api('/api/pets');
+    id_pet.innerHTML = '<option value="">Selecione</option>' + p.map(x => `<option value="${x.id}">${x.nome} (${x.tutor})</option>`).join('');
+}
+const fmt = (d) => { const [dia, h] = d.split('T'); return dia.split('-').reverse().join('/') + ' ' + h; };
+async function listar() {
+    ags = await api('/api/agendamentos?busca=' + encodeURIComponent(busca.value));
+    lista.innerHTML = ags.map(a => `<tr><td>${fmt(a.data_hora)}</td><td>${a.pet}</td><td>${a.tutor}</td><td>${a.motivo}</td>
+      <td>${a.status}</td><td>${a.atendente}</td>
+      <td><button class="edit" onclick="editar(${a.id})">Editar</button> <button class="del" onclick="excluir(${a.id})">Excluir</button></td></tr>`).join('')
+      || '<tr><td colspan="7">Nenhum agendamento encontrado.</td></tr>';
+}
+function limpar() { ['id','id_pet','data_hora','motivo'].forEach(i => document.getElementById(i).value = ''); document.getElementById('status').value = 'AGENDADO'; tituloForm.textContent = 'Novo Agendamento'; }
+function editar(i) {
+    const a = ags.find(x => x.id === i);
+    id.value = a.id; id_pet.value = a.id_pet; data_hora.value = a.data_hora; motivo.value = a.motivo; document.getElementById('status').value = a.status;
+    tituloForm.textContent = 'Editar Agendamento'; window.scrollTo(0, 0);
+}
+async function salvar() {
+    const corpo = { id_pet: id_pet.value, data_hora: data_hora.value, motivo: motivo.value, status: document.getElementById('status').value };
+    if (!corpo.id_pet || !corpo.data_hora || !corpo.motivo.trim()) { alert('Preencha todos os campos!'); return; }
+    await api(id.value ? '/api/agendamentos/' + id.value : '/api/agendamentos', id.value ? 'PUT' : 'POST', corpo);
+    alert('Agendamento salvo com sucesso!'); limpar(); listar();
+}
+async function excluir(i) {
+    if (!confirm('Deseja realmente excluir este agendamento?')) return;
+    await api('/api/agendamentos/' + i, 'DELETE'); listar();
+}
+carregarPets(); listar();
+</script></body></html>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<div class="card login">
+  <h1>🐾 Clínica Veterinária</h1>
+  <label for="usuario">Usuário</label><input id="usuario" type="text" placeholder="Usuário">
+  <label for="senha">Senha</label><input id="senha" type="password" placeholder="Senha">
+  <button onclick="login()">Entrar</button>
+</div>
+<script>
+async function login() {
+    const usuario = document.getElementById('usuario').value.trim();
+    const senha = document.getElementById('senha').value;
+    if (!usuario || !senha) { alert('Preencha usuário e senha!'); return; }
+    const resp = await fetch('/api/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ usuario, senha })
+    });
+    const dados = await resp.json();
+    if (resp.ok) {
+        localStorage.setItem('token', dados.token);
+        localStorage.setItem('nome', dados.nome);
+        window.location.href = 'home.html';
+    } else {
+        alert('Falha na autenticação: ' + dados.erro);   // informa o motivo
+        window.location.href = 'login.html';              // volta para o login
+    }
+}
+</script></body></html>
